@@ -24,19 +24,39 @@ export class AppComponent implements OnInit {
   private scheludes: Schelude[] = [];
   private trains: any[] = [];
 
-  public stationNames: { name: string; shortName: string }[] = [];
-
   constructor(private trainService: TrainService) {}
 
   ngOnInit() {
     this.fecthStations();
   }
 
+  /**
+   * Gets stations for typeahead input from digitraffic
+   */
+  private async fecthStations() {
+    const temp = await this.trainService.getStations();
+    if (temp) {
+      temp.forEach((o: Station) => {
+        if (o.passengerTraffic) {
+          this.stations.push(o);
+        }
+      });
+    }
+  }
+
+  /**
+   * This function deals with selection in search input
+   * @param event any
+   */
   public search(event: any) {
     this.selectedStation = event.item.stationShortCode;
     this.getTrain(this.selectedStation);
   }
 
+  /**
+   * When user selects stations, fecth train for it and start creating table
+   * @param station string
+   */
   private async getTrain(station: string) {
     const temp = await this.trainService.getTrainsForStation(station);
     if (temp) {
@@ -45,21 +65,12 @@ export class AppComponent implements OnInit {
     }
   }
 
-  private async fecthStations() {
-    const temp = await this.trainService.getStations();
-    if (temp) {
-      temp.forEach((o: Station) => {
-        if (o.passengerTraffic) {
-          this.stationNames.push({
-            name: o.stationName,
-            shortName: o.stationShortCode
-          });
-          this.stations.push(o);
-        }
-      });
-    }
-  }
-
+  /**
+   * Here we create object for table from trains
+   * TODO: Create model for train
+   * @param trains any
+   * @param station string
+   */
   private createSchelude(trains: any, station: string): void {
     this.scheludes = [];
     for (const item of trains) {
@@ -78,6 +89,9 @@ export class AppComponent implements OnInit {
     }
   }
 
+  /**
+   * Functions sort schelude array by time
+   */
   public sortByDueDate(): void {
     this.scheludes.sort((a: any, b: any) => {
       if (a.arrives.scheludedTime) {
@@ -87,9 +101,12 @@ export class AppComponent implements OnInit {
         );
       }
     });
-    console.log(this.scheludes);
   }
 
+  /**
+   * Get stations fullname from stations object and returns string
+   * @param short string
+   */
   private getFullStationName(short: string): string {
     const name = find(this.stations, (o: any) => {
       return o.stationShortCode === short;
@@ -97,12 +114,19 @@ export class AppComponent implements OnInit {
     return name.stationName.split(' ')[0];
   }
 
-  public getLastStation(train: any): string {
+  /**
+   * Function finds the last station from train scheludes and returns name
+   */
+  private getLastStation(train: any): string {
     return this.getFullStationName(
       train.timeTableRows[train.timeTableRows.length - 1].stationShortCode
     );
   }
 
+  /**
+   * Creates Arrive-model from train scheludes for selected station
+   * When train is late (actualTime is presented) we check that it is atleast 1 minute
+   */
   public schelude(train: any, station: string): Arrive {
     const arrive = new Arrive();
     for (const time of train.timeTableRows) {
