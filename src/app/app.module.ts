@@ -9,10 +9,9 @@ import { FormsModule } from '@angular/forms';
 import { TrainService } from './services/train.service';
 import { HttpClientModule } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { ScheludeTableComponent } from './schelude-component/schelude-table/schelude-table.component';
 
 @NgModule({
-  declarations: [AppComponent, ScheludeTableComponent],
+  declarations: [AppComponent],
   imports: [
     BrowserAnimationsModule,
     TabsModule.forRoot(),

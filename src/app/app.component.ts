@@ -18,15 +18,15 @@ import { parseISO, toDate, getMinutes, differenceInMinutes } from 'date-fns';
   encapsulation: ViewEncapsulation.None
 })
 export class AppComponent implements OnInit {
-  public customSelected: string;
+  public inputSelection: string;
   public selectedStation: any;
   private stations: any[] = [];
   private scheludes: Schelude[] = [];
+  private trains: any[] = [];
 
-  constructor(
-    private trainService: TrainService,
-    private ref: ChangeDetectorRef
-  ) {}
+  public stationNames: { name: string; shortName: string }[] = [];
+
+  constructor(private trainService: TrainService) {}
 
   ngOnInit() {
     this.fecthStations();
@@ -40,6 +40,7 @@ export class AppComponent implements OnInit {
   private async getTrain(station: string) {
     const temp = await this.trainService.getTrainsForStation(station);
     if (temp) {
+      this.trains = temp;
       this.createSchelude(temp, station);
     }
   }
@@ -49,6 +50,10 @@ export class AppComponent implements OnInit {
     if (temp) {
       temp.forEach((o: Station) => {
         if (o.passengerTraffic) {
+          this.stationNames.push({
+            name: o.stationName,
+            shortName: o.stationShortCode
+          });
           this.stations.push(o);
         }
       });
