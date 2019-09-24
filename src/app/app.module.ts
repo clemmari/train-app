@@ -8,10 +8,13 @@ import { TypeaheadModule } from 'ngx-bootstrap/typeahead';
 import { FormsModule } from '@angular/forms';
 import { TrainService } from './services/train.service';
 import { HttpClientModule } from '@angular/common/http';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { ScheludeTableComponent } from './schelude-component/schelude-table/schelude-table.component';
 
 @NgModule({
-  declarations: [AppComponent],
+  declarations: [AppComponent, ScheludeTableComponent],
   imports: [
+    BrowserAnimationsModule,
     TabsModule.forRoot(),
     TypeaheadModule.forRoot(),
     BrowserModule,

@@ -1,61 +1,48 @@
 import {
   Component,
   OnInit,
-  ViewEncapsulation,
+  Input,
   ChangeDetectionStrategy,
   ChangeDetectorRef
 } from '@angular/core';
-import { TrainService } from './services/train.service';
-import { Station } from './models/station.model';
+import { TrainService } from 'src/app/services/train.service';
 import { find } from 'lodash';
-import { Schelude, Arrive } from './models/schelude.model';
+import { Schelude, Arrive } from './../../models/schelude.model';
 import { parseISO, toDate, getMinutes, differenceInMinutes } from 'date-fns';
+import { Station } from 'src/app/models/station.model';
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  selector: 'app-schelude-table',
+  templateUrl: './schelude-table.component.html',
+  styleUrls: ['./schelude-table.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AppComponent implements OnInit {
+export class ScheludeTableComponent implements OnInit {
+  @Input()
+  public station: any;
   public customSelected: string;
-  public selectedStation: any;
-  private stations: any[] = [];
   private scheludes: Schelude[] = [];
+  private stations: any[] = [];
 
-  constructor(
-    private trainService: TrainService,
-    private ref: ChangeDetectorRef
-  ) {}
+  constructor(private trainService: TrainService) {}
 
   ngOnInit() {
-    this.fecthStations();
+    this.prepareSchelude();
   }
 
-  public search(event: any) {
-    this.selectedStation = event.item.stationShortCode;
-    this.getTrain(this.selectedStation);
-  }
-
-  private async getTrain(station: string) {
-    const temp = await this.trainService.getTrainsForStation(station);
-    if (temp) {
-      this.createSchelude(temp, station);
-    }
-  }
-
-  private async fecthStations() {
-    const temp = await this.trainService.getStations();
-    if (temp) {
-      temp.forEach((o: Station) => {
-        if (o.passengerTraffic) {
-          this.stations.push(o);
-        }
-      });
+  private async prepareSchelude() {
+    if (this.station) {
+      const temp = await this.trainService.getTrainsForStation(
+        this.station.stationShortCode
+      );
+      if (temp) {
+        this.createSchelude(temp, this.station);
+      }
     }
   }
 
   private createSchelude(trains: any, station: string): void {
+    console.log(this.station);
     this.scheludes = [];
     for (const item of trains) {
       const single: Schelude = new Schelude();
@@ -73,7 +60,7 @@ export class AppComponent implements OnInit {
     }
   }
 
-  public sortByDueDate(): void {
+  private sortByDueDate(): void {
     this.scheludes.sort((a: any, b: any) => {
       if (a.arrives.scheludedTime) {
         return (
@@ -82,23 +69,24 @@ export class AppComponent implements OnInit {
         );
       }
     });
-    console.log(this.scheludes);
+    console.log('asd', this.scheludes);
   }
 
   private getFullStationName(short: string): string {
-    const name = find(this.stations, (o: any) => {
+    console.log(this.station);
+    const name = find(this.station.stationShortCode, (o: any) => {
       return o.stationShortCode === short;
     });
     return name.stationName.split(' ')[0];
   }
 
-  public getLastStation(train: any): string {
+  private getLastStation(train: any): string {
     return this.getFullStationName(
       train.timeTableRows[train.timeTableRows.length - 1].stationShortCode
     );
   }
 
-  public schelude(train: any, station: string): Arrive {
+  private schelude(train: any, station: string): Arrive {
     const arrive = new Arrive();
     for (const time of train.timeTableRows) {
       if (time.stationShortCode === station) {
@@ -117,6 +105,17 @@ export class AppComponent implements OnInit {
           return arrive;
         }
       }
+    }
+  }
+
+  private async fecthStations() {
+    const temp = await this.trainService.getStations();
+    if (temp) {
+      temp.forEach((o: Station) => {
+        if (o.passengerTraffic) {
+          this.stations.push(o);
+        }
+      });
     }
   }
 }
